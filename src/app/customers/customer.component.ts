@@ -28,6 +28,8 @@ export class CustomerComponent implements OnInit {
         '',
         [Validators.required, Validators.email]
       ],
+      phone: '',
+      notification: 'email',
       sendCatalog: true
     })
   }
@@ -44,5 +46,16 @@ export class CustomerComponent implements OnInit {
       email: 'may@gm.com',
       sendCatalog: false
     })
+  }
+
+  setNotification(notifyVia: string): void {
+    const phoneControl =  this.customerForm.get('phone');
+    if (notifyVia == 'text'){
+      phoneControl.setValidators(Validators.required);
+    }
+    else{
+      phoneControl.clearValidators();
+    }
+    phoneControl.updateValueAndValidity();
   }
 }
