@@ -12,7 +12,7 @@ function ratingRange(min: number, max: number): ValidatorFn {
   };
 }
 
-function checkEmails(ctrl: AbstractControl): {[key: string]: boolean} | null {
+function matchEmails(ctrl: AbstractControl): {[key: string]: boolean} | null {
   const email = ctrl.get('email');
   const confirmEmail = ctrl.get('confirmEmail');
 
@@ -31,6 +31,13 @@ export class CustomerComponent implements OnInit {
   customerForm: FormGroup;
   customer = new Customer();
 
+  private validationMessages = {
+    required: 'Please enter your email address.',
+    email: 'Please enter a valid email address.'
+  };
+
+  emailMessage: string;
+
   constructor(private fb: FormBuilder) { }
 
   ngOnInit(): void {
@@ -41,7 +48,7 @@ export class CustomerComponent implements OnInit {
         email: ['', [Validators.required, Validators.email]],
         confirmEmail: ['', Validators.required]
       },
-        {validator: checkEmails}
+        {validator: matchEmails}
       ),
       phone: '',
       notification: 'email',
@@ -51,12 +58,17 @@ export class CustomerComponent implements OnInit {
     this.customerForm.get('notification').valueChanges.subscribe(
       val => this.setNotification(val)
     );
-  }
+
+    const emailctrl = this.customerForm.get('emailGroup.email');
+    emailctrl.valueChanges.subscribe(
+      val => this.setMessage(emailctrl)
+    );
+  };
 
   save(): void {
     console.log(this.customerForm);
     console.log('Saved: ' + JSON.stringify(this.customerForm.value));
-  }
+  };
 
   populateTestData(): void{
     this.customerForm.setValue({
@@ -65,7 +77,7 @@ export class CustomerComponent implements OnInit {
       email: 'may@gm.com',
       sendCatalog: false
     })
-  }
+  };
 
   setNotification(notifyVia: string): void {
     const phoneControl =  this.customerForm.get('phone');
@@ -76,5 +88,14 @@ export class CustomerComponent implements OnInit {
       phoneControl.clearValidators();
     }
     phoneControl.updateValueAndValidity();
-  }
+  };
+
+  setMessage(ctrl: AbstractControl): void {
+    this.emailMessage = '';
+    if ((ctrl.touched || ctrl.dirty) && ctrl.errors) {
+      this.emailMessage = Object.keys(ctrl.errors).map(
+        key => this.validationMessages[key]
+      ).join(' ');
+    }
+  };
 }
