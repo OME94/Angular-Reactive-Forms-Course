@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormBuilder, Validators, AbstractControl, ValidatorFn } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators, AbstractControl, ValidatorFn, FormArray } from '@angular/forms';
 import { debounceTime } from 'rxjs/operators';
 
 import { Customer } from './customer';
@@ -31,13 +31,16 @@ function matchEmails(ctrl: AbstractControl): {[key: string]: boolean} | null {
 export class CustomerComponent implements OnInit {
   customerForm: FormGroup;
   customer = new Customer();
+  emailMessage: string;
+
+  get addresses(): FormArray {
+    return <FormArray>this.customerForm.get('addresses');
+  }      //TypeCast to FormArray type from AbstractControl type
 
   private validationMessages = {
     required: 'Please enter your email address.',
     email: 'Please enter a valid email address.'
   };
-
-  emailMessage: string;
 
   constructor(private fb: FormBuilder) { }
 
@@ -53,7 +56,8 @@ export class CustomerComponent implements OnInit {
       ),
       phone: '',
       notification: 'email',
-      sendCatalog: true
+      sendCatalog: true,
+      addresses: this.fb.array([ this.buildAddress() ])
     });
 
     this.customerForm.get('notification').valueChanges.subscribe(
@@ -72,13 +76,29 @@ export class CustomerComponent implements OnInit {
   };
 
   populateTestData(): void{
-    this.customerForm.setValue({
+    this.customerForm.patchValue({
       firstName: 'Mayor',
       lastName: 'Emman',
       email: 'may@gm.com',
       sendCatalog: false
     })
   };
+  // How can I set/patchValue for nested FormGroup/Arrays ?
+
+  buildAddress(): FormGroup {
+    return this.fb.group({
+      addressType: 'home',
+      street1: '',
+      street2: '',
+      city: '',
+      state: '',
+      zip: ''
+    })
+  }
+
+  addAddress(): void {
+    this.addresses.push(this.buildAddress());
+  }
 
   setNotification(notifyVia: string): void {
     const phoneControl =  this.customerForm.get('phone');
